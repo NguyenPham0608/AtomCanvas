@@ -2,6 +2,8 @@
 const canvas = document.getElementById('canvas1')
 const ctx = canvas.getContext('2d')
 
+canvas.width = 1600;
+canvas.height = 900;
 
 let radius=40
 // range of selections
