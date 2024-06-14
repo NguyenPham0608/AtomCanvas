@@ -26,7 +26,8 @@ let snapAudio=new Audio()
 snapAudio.src='Button-Click.wav'
 
 let optionsAudio=new Audio()
-optionsAudio.src='OptionsSFX.wav'
+// optionsAudio.src='OptionsSFX.wav'
+optionsAudio.src='Create.wav'
 
 let deleteX=0
 let deleteY=0
@@ -562,7 +563,7 @@ function drawOptions(){
             if(brush !==1){
                 brush=1
             }
-            snapAudio.play()
+            optionsAudio.play()
         }
     }
 
@@ -582,7 +583,7 @@ function drawOptions(){
             if(brush !==2){
                 brush=2
             }
-            snapAudio.play()
+            optionsAudio.play()
 
         }
     }
@@ -613,7 +614,7 @@ function drawOptions(){
             if(brush !==3){
                 brush=3
             }
-            snapAudio.play()
+            optionsAudio.play()
 
         }
     }
@@ -709,7 +710,7 @@ window.addEventListener('click', function(){
             if(connected==1){
                 newAtomCreated=true
             }
-            optionsAudio.play()
+            snapAudio.play()
 
         }
 
