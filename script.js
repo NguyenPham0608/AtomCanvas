@@ -2,7 +2,9 @@
 const canvas = document.getElementById('canvas1')
 const ctx = canvas.getContext('2d')
 
+
 let radius=40
+// range of selections
 
 let canvasPosition = canvas.getBoundingClientRect()
 
