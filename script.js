@@ -1088,16 +1088,30 @@ function addHydrogen(offset,idx,x,y,armlength,arm,type){
     connectionIdx=idx
     newDetectedIDX=Math.floor(Math.random()*10-1)
     if(arm==1){
-        newDetectedARM=1
-        armNumber=1
-        newDetectedMLCIDX=newDetectedMLCIDXCan
-        moleculeArray.push(new Molecule(x-offset+armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
-    }else{
-        if(arm==2){
+        if(type==3){
             newDetectedARM=2
             armNumber=2
             newDetectedMLCIDX=newDetectedMLCIDXCan
             moleculeArray.push(new Molecule(x-offset-armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+        }else{
+            newDetectedARM=1
+            armNumber=1
+            newDetectedMLCIDX=newDetectedMLCIDXCan
+            moleculeArray.push(new Molecule(x-offset+armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+        }
+    }else{
+        if(arm==2){
+            if(type==3){
+                newDetectedARM=1
+                armNumber=1
+                newDetectedMLCIDX=newDetectedMLCIDXCan
+                moleculeArray.push(new Molecule(x-offset+armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+            }else{
+                newDetectedARM=2
+                armNumber=2
+                newDetectedMLCIDX=newDetectedMLCIDXCan
+                moleculeArray.push(new Molecule(x-offset-armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+            }
         }else{
             if(arm==3){
                 newDetectedARM=3
