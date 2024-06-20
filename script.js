@@ -372,54 +372,13 @@ class Molecule{
                 for(let i = 0; i<this.unUsedArmsArray.length; i++){
                     this.tmp=this.unUsedArmsArray[i]
                     if(this.brushType==1){
-                        this.offset=15.5
-                        if(this.tmp==1){
-                            connected=1
-                            connectionIdx=this.idx
-                            // newDetectedIDX=this.idx
-                            newDetectedIDX=Math.floor(Math.random()*10-1)
-                            newDetectedARM=1
-                            armNumber=1
-                            newDetectedMLCIDX=newDetectedMLCIDXCan
-                            moleculeArray.push(new Molecule(this.x-this.offset+this.armLength*1.5,this.y-this.offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
-                        }else{
-                            if(this.tmp==2){
-                                connected=1
-                                connectionIdx=this.idx
-                                // newDetectedIDX=this.idx
-                                newDetectedIDX=Math.floor(Math.random()*10-1)
-                                newDetectedARM=2
-                                armNumber=2
-                                newDetectedMLCIDX=newDetectedMLCIDXCan
-                                moleculeArray.push(new Molecule(this.x-this.offset-this.armLength*1.5,this.y-this.offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
-                            }else{
-                                if(this.tmp==3){
-                                    connected=1
-                                    connectionIdx=this.idx
-                                    // newDetectedIDX=this.idx
-                                    newDetectedIDX=Math.floor(Math.random()*10-1)
-                                    newDetectedARM=3
-                                    armNumber=3
-                                    newDetectedMLCIDX=newDetectedMLCIDXCan
-                                    moleculeArray.push(new Molecule(this.x-this.offset,this.y-this.offset+this.armLength*1.5, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
-                                }else{
-                                    connected=1
-                                    connectionIdx=this.idx
-                                    // newDetectedIDX=this.idx
-                                    newDetectedIDX=Math.floor(Math.random()*10-1)
-                                    newDetectedARM=4
-                                    armNumber=4
-                                    newDetectedMLCIDX=newDetectedMLCIDXCan
-                                    moleculeArray.push(new Molecule(this.x-this.offset,this.y-this.offset-this.armLength*1.48, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
-                                }
-                            }
-                        }
+                        addHydrogen(15.5,this.idx,this.x,this.y,this.armLength,this.tmp,this.brushType)
                     }else{
                         if(this.brushType==2){
         
                         }else{
                             if(this.brushType==3){
-        
+                                addHydrogen(13.5,this.idx,this.x,this.y,this.armLength,this.tmp,this.brushType)
                             }else{
                                 if(this.brushType==4){
         
@@ -607,36 +566,28 @@ class Detector{
                 connectionIdx=this.moleculeIdx
                 // newDetectedIDX=this.moleculeIdx
                 newDetectedIDX=Math.floor(Math.random()*10-1)
-
                 newDetectedARM=this.armNumber
                 newDetectedMLCIDX=newDetectedMLCIDXCan
+                connected=1
+
                 if(this.armNumber==1){
                     inRangeX=this.x+this.bondDistance-this.range-0.5
                     inRangeY=this.y-this.range-0.5
-                    detectorPositions=1
-                    connected=1
-    
+                    detectorPositions=1    
                 }else{
                     if(this.armNumber==2){
-    
                         inRangeX=this.x-this.bondDistance-this.range-0.5
                         inRangeY=this.y-this.range-0.5
                         detectorPositions=2
-                        connected=1
-    
                     }else{
                         if(this.armNumber==3){
                             inRangeX=this.x-this.range-0.5
                             inRangeY=this.y+this.bondDistance-this.range-0.5
                             detectorPositions=3
-                            connected=1
-    
-    
                         }else{
                             inRangeX=this.x-this.range-0.5
                             inRangeY=this.y-this.bondDistance-this.range-0.5
                             detectorPositions=4
-                            connected=1
                         
                         }
                     }
@@ -1129,6 +1080,37 @@ function deleteWantedIdx(value,array){
     let indexOfValue=array.indexOf(value)
     if (indexOfValue !== -1) {
         array.splice(indexOfValue, 1);
+    }
+}
+
+function addHydrogen(offset,idx,x,y,armlength,arm,type){
+    connected=1
+    connectionIdx=idx
+    newDetectedIDX=Math.floor(Math.random()*10-1)
+    if(arm==1){
+        newDetectedARM=1
+        armNumber=1
+        newDetectedMLCIDX=newDetectedMLCIDXCan
+        moleculeArray.push(new Molecule(x-offset+armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+    }else{
+        if(arm==2){
+            newDetectedARM=2
+            armNumber=2
+            newDetectedMLCIDX=newDetectedMLCIDXCan
+            moleculeArray.push(new Molecule(x-offset-armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+        }else{
+            if(arm==3){
+                newDetectedARM=3
+                armNumber=3
+                newDetectedMLCIDX=newDetectedMLCIDXCan
+                moleculeArray.push(new Molecule(x-offset,y-offset+armlength*1.5, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+            }else{
+                newDetectedARM=4
+                armNumber=4
+                newDetectedMLCIDX=newDetectedMLCIDXCan
+                moleculeArray.push(new Molecule(x-offset,y-offset-armlength*1.48, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+            }
+        }
     }
 }
 
