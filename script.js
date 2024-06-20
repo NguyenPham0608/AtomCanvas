@@ -8,6 +8,8 @@ let radius=40
 
 let canvasPosition = canvas.getBoundingClientRect()
 
+let atomsFilled=0
+
 let trashImage=new Image()
 trashImage.src='https://cdn3.iconfinder.com/data/icons/linecons-free-vector-icons-pack/32/trash-512.png'
 
@@ -29,6 +31,8 @@ let optionsAudio=new Audio()
 // optionsAudio.src='OptionsSFX.wav'
 optionsAudio.src='Create.wav'
 
+
+
 let deleteX=0
 let deleteY=0
 
@@ -49,7 +53,7 @@ let z =0
 
 let undo=0
 
-
+let atomsTobeFilled=0
 
 let mouseX=0
 let mouseY=0
@@ -70,6 +74,8 @@ let newestMoleculeIdx=0
 
 let newAtomCreated=false
 
+let click=false
+
 let panX=0
 let panY=0
 
@@ -86,6 +92,8 @@ let moleculeX=0
 let moleculeY=0
 
 let detectorPositions
+
+let fillHydrogen=false
 
 let dx=0
 let dy=0
@@ -111,37 +119,29 @@ const moleculeArray=[]
 const detectorArray=[]
 
 class Molecule{
-    constructor(x,y,idx,id){
+    constructor(x,y,idx,id,type,armLength){
 
         this.detectorPositions=detectorPositions
 
-        if (brush==1) {
-            this.fillStyle='black'
-            this.strokestyle='black'
-            this.label='C'
-        } else {
-            if(brush==2){
-                this.fillStyle='blue'
-                this.strokestyle='blue'
-                this.label='H'
-            }else{
-                this.fillStyle='red'
-                this.strokestyle='red'
-                this.label='O'
-            }
-        }
+
 
         this.id=id
         this.distance=0
         this.dx=0
         this.dy=0
-        this.brushType=brush
+        this.brushType=type
+
+        this.click=false
+        
+        this.tmp=0
         
         this.connected=connected
         this.brightness=0
 
-        this.moleculeRadius=brushArmlength/3
-        this.armLength=brushArmlength
+        this.moleculeRadius=armLength/3
+        this.armLength=armLength
+
+        this.fillHydrogen='ready'
 
         this.selected=false
         this.armNumber=armNumber
@@ -154,12 +154,41 @@ class Molecule{
             this.y=moleculeY
         }
 
+
         this.x=x+this.moleculeRadius
         this.y=y+this.moleculeRadius
 
+        if (this.brushType==1) {
+            this.fillStyle='black'
+            this.strokestyle='black'
+            this.label='C'
+        } else {
+            if(this.brushType==2){
+                this.fillStyle='blue'
+                this.strokestyle='blue'
+                this.label='H'
+            }else{
+                this.fillStyle='red'
+                this.strokestyle='red'
+                this.label='O'
+            }
+        }
+        
+        if(this.brushType !==2){
+            atomsTobeFilled++
+        }
+
+
         if(this.brushType==1){
+
             if(this.connected==1){
+                this.maxArms=3
+
                 if(this.armNumber==1){
+                    this.connectedArms=[2]
+
+                    this.unUsedArmsArray=[1,3,4]
+
                     detectors++
                     detectorArray.push(new Detector(this.x-4.90+this.armLength,this.y-4.90, 1, this.idx,this.armLength,detectors))
                     detectors++
@@ -168,6 +197,10 @@ class Molecule{
                     detectorArray.push(new Detector(this.x-4.90,this.y-4.95-this.armLength, 4, this.idx,this.armLength,detectors))
                 }else{
                     if(this.armNumber==2){
+                        this.connectedArms=[1]
+
+                        this.unUsedArmsArray=[2,3,4]
+
                         detectors++
                         detectorArray.push(new Detector(this.x-4.90-this.armLength,this.y-4.90, 2, this.idx,this.armLength,detectors))
                         detectors++
@@ -176,6 +209,10 @@ class Molecule{
                         detectorArray.push(new Detector(this.x-4.90,this.y-4.95-this.armLength, 4, this.idx,this.armLength,detectors))
                     }else{
                         if(this.armNumber==3){
+                            this.connectedArms=[4]
+
+                            this.unUsedArmsArray=[1,2,3]
+
                             detectors++
                             detectorArray.push(new Detector(this.x-4.90+this.armLength,this.y-4.90, 1, this.idx,this.armLength,detectors))
                             detectors++
@@ -183,6 +220,9 @@ class Molecule{
                             detectors++
                             detectorArray.push(new Detector(this.x-4.90,this.y-4.95+this.armLength, 3, this.idx,this.armLength,detectors))
                         }else{
+                            this.connectedArms=[3]
+                            this.unUsedArmsArray=[1,2,4]
+
                             detectors++
                             detectorArray.push(new Detector(this.x-4.90+this.armLength,this.y-4.90, 1, this.idx,this.armLength,detectors))
                             detectors++
@@ -194,6 +234,10 @@ class Molecule{
                     }
                 }
             }else{
+                this.maxArms=4
+                this.connectedArms=[]
+                this.unUsedArmsArray=[1,2,3,4]
+
                 detectors++
                 detectorArray.push(new Detector(this.x-4.90+this.armLength,this.y-4.90, 1, this.idx,this.armLength,detectors))
                 detectors++
@@ -205,31 +249,78 @@ class Molecule{
             }
         }else{
             if(this.brushType==2){
+
+
                 if(this.connected==0){
+                    this.connectedArms=[]
+                    this.unUsedArmsArray=[4]
+                    this.maxArms=1
+
                     detectors++
                     detectorArray.push(new Detector(this.x+this.moleculeRadius/2,this.y+3-this.armLength, 4, this.idx,this.armLength,detectors))
+                    
+                }else{
+                    if(this.armNumber==1){
+                        this.connectedArms=[1]
+                        this.unUsedArmsArray=[]
+                        this.maxArms=0
+                    }else{
+                        if(this.armNumber==2){
+                            this.connectedArms=[2]
+                            this.unUsedArmsArray=[]
+                            this.maxArms=0
+                        }else{
+                            if(this.armNumber==3){
+                                this.connectedArms=[3]
+                                this.unUsedArmsArray=[]
+                                this.maxArms=0
+                            }else{
+                                this.connectedArms=[4]
+                                this.unUsedArmsArray=[]
+                                this.maxArms=0
+                            }
+                        }
+                    }
                 }
             }else{
+                this.maxArms=2
+
                 //next//
                 if(this.connected==0){
+                    this.connectedArms=[]
+                    this.unUsedArmsArray=[3,4]
+                    this.maxArms=2
                     detectors++
                     detectorArray.push(new Detector(this.x-3,this.y-3+this.armLength, 3, this.idx,this.armLength,detectors))
                     detectors++
                     detectorArray.push(new Detector(this.x-3,this.y-3-this.armLength, 4, this.idx,this.armLength,detectors))
                     
                 }else{
+
                     if(this.detectorPositions==1){
+                        this.connectedArms=[1]
+                        this.unUsedArmsArray=[2]
+                        this.maxArms=1
                         detectors++
                         detectorArray.push(new Detector(this.x-3+this.armLength,this.y-3, 1, this.idx,this.armLength,detectors))
                     }else{
                         if(this.detectorPositions==2){
+                            this.connectedArms=[2]
+                            this.unUsedArmsArray=[1]
+                            this.maxArms=1
                             detectors++
                             detectorArray.push(new Detector(this.x-3-this.armLength,this.y-3, 2, this.idx,this.armLength,detectors))
                         }else{
                             if(this.detectorPositions==3){
+                                this.connectedArms=[3]
+                                this.unUsedArmsArray=[4]
+                                this.maxArms=1
                                 detectors++
                                 detectorArray.push(new Detector(this.x-3,this.y-3+this.armLength, 3, this.idx,this.armLength,detectors))
                             }else{
+                                this.connectedArms=[4]
+                                this.unUsedArmsArray=[3]
+                                this.maxArms=1
                                 detectors++
                                 detectorArray.push(new Detector(this.x-3,this.y-3-this.armLength, 4, this.idx,this.armLength,detectors))
                             }
@@ -239,12 +330,74 @@ class Molecule{
             }
         }
 
-
-
+        this.offset=0
+        this.unUsedArms=this.maxArms
 
 
     }
     calculate(){
+
+        if(mouseDown){
+            this.click=1
+        }
+
+        if(this.unUsedArms==0){
+            this.unUsedArms='full'
+        }
+
+        if(newDetectedIDX==this.idx){
+            if(this.click==1){
+                if(this.unUsedArms==0){
+                    this.unUsedArms='full'
+                }else{
+                    this.unUsedArms--
+                }
+                this.connectedArms.push(newDetectedARM)
+                console.log()
+                deleteWantedIdx(newDetectedARM,this.unUsedArmsArray)
+                this.click
+            }
+        }
+
+        if(fillHydrogen){
+            if(this.fillHydrogen=='ready'){
+                this.fillHydrogen=true
+            }
+        }
+
+        if(this.brushType !==2){
+            if(this.fillHydrogen==true){
+                console.log(this.unUsedArmsArray)
+
+                for(let i = 0; i<this.unUsedArmsArray.length; i++){
+                    this.tmp=this.unUsedArmsArray[i]
+                    if(this.brushType==1){
+                        addHydrogen(15.5,this.idx,this.x,this.y,this.armLength,this.tmp,this.brushType)
+                    }else{
+                        if(this.brushType==2){
+        
+                        }else{
+                            if(this.brushType==3){
+                                addHydrogen(13.5,this.idx,this.x,this.y,this.armLength,this.tmp,this.brushType)
+                            }else{
+                                if(this.brushType==4){
+        
+                                }else{
+                                    
+                                }
+                            } 
+                        } 
+                    }
+                }
+                atomsFilled++
+                this.fillHydrogen=false
+            }
+        }
+
+        
+
+
+
         this.dx=mouseX-this.x
         this.dy=mouseY-this.y
         this.distance=Math.sqrt((this.dx*this.dx)+(this.dy*this.dy))
@@ -255,7 +408,7 @@ class Molecule{
             if(this.distance<this.moleculeRadius*3){
                 if(mouseDown){
                     deleteIdx=this.idx
-                    deleteItemById(this.id)
+                    deleteItemById(this.id,moleculeArray)
 
                 }
             }else{
@@ -411,36 +564,30 @@ class Detector{
             this.bondDistance=this.armLength+brushArmlength
             if(this.distance<this.range){
                 connectionIdx=this.moleculeIdx
-                newDetectedIDX=this.moleculeIdx
+                // newDetectedIDX=this.moleculeIdx
+                newDetectedIDX=Math.floor(Math.random()*10-1)
                 newDetectedARM=this.armNumber
                 newDetectedMLCIDX=newDetectedMLCIDXCan
+                connected=1
+
                 if(this.armNumber==1){
                     inRangeX=this.x+this.bondDistance-this.range-0.5
                     inRangeY=this.y-this.range-0.5
-                    detectorPositions=1
-                    connected=1
-    
+                    detectorPositions=1    
                 }else{
                     if(this.armNumber==2){
-    
                         inRangeX=this.x-this.bondDistance-this.range-0.5
                         inRangeY=this.y-this.range-0.5
                         detectorPositions=2
-                        connected=1
-    
                     }else{
                         if(this.armNumber==3){
                             inRangeX=this.x-this.range-0.5
                             inRangeY=this.y+this.bondDistance-this.range-0.5
                             detectorPositions=3
-                            connected=1
-    
-    
                         }else{
                             inRangeX=this.x-this.range-0.5
                             inRangeY=this.y-this.bondDistance-this.range-0.5
                             detectorPositions=4
-                            connected=1
                         
                         }
                     }
@@ -476,6 +623,7 @@ class Detector{
 }
 
 function loop(){
+    atomsFilled=0
     armNumber=3
     inRangeX=mouseX
     inRangeY=mouseY
@@ -514,17 +662,20 @@ function loop(){
         atom.draw()})
 
 
-        if(mouseX>300+brushArmlength){
-            drawGhostedAtoms()
-        }
+    if(mouseX>300+brushArmlength){
+        drawGhostedAtoms()
+    }
 
-
+    if(atomsFilled==atomsTobeFilled){
+        fillHydrogen=false
+    }
+    
 
     requestAnimationFrame(loop)
 
 }
 
-function drawOptions(){
+    function drawOptions(){
     ctx.fillStyle='lightgray'
     // if(mouseX<310){
     //     panX+=0.2*(0-panX)
@@ -602,7 +753,6 @@ function drawOptions(){
 
     optionY=290
 
-    console.log(erase)
     ctx.beginPath()
     ctx.fillStyle='red'
     ctx.arc(panX+optionX,optionY,13.7,0,2*Math.PI,'false')
@@ -644,8 +794,6 @@ function drawOptions(){
     }else{
         hoverTrash=false
     }
-
-
 
 
     ctx.drawImage(eraseImage,0,0,800,800,panX+130,830,100,100)
@@ -703,9 +851,9 @@ window.addEventListener('click', function(){
         atoms++
         if(erase==false){
             if(connected==0){
-                moleculeArray.unshift(new Molecule(inRangeX,inRangeY, Math.floor(Math.random()*10-1) ,nextId++))
+                moleculeArray.unshift(new Molecule(inRangeX,inRangeY, Math.floor(Math.random()*10-1) ,nextId++,brush,brushArmlength))
             }else{
-                moleculeArray.unshift(new Molecule(inRangeX,inRangeY, connectionIdx ,nextId++))
+                moleculeArray.unshift(new Molecule(inRangeX,inRangeY, connectionIdx ,nextId++,brush,brushArmlength))
             }
             if(connected==1){
                 newAtomCreated=true
@@ -714,12 +862,14 @@ window.addEventListener('click', function(){
 
         }
 
+        click=true
 
     }
     if(hoverTrash){
         atoms=0
         moleculeArray.splice(0,moleculeArray.length)
         detectorArray.splice(0,detectorArray.length)
+        atomsTobeFilled=0
         optionsAudio.play()
     }
 
@@ -739,6 +889,7 @@ window.addEventListener('click', function(){
         optionsAudio.play()
 
     }
+
 })
 
 
@@ -747,6 +898,7 @@ window.addEventListener('mousemove',function(e){
     // mouseY=e.y-canvasPosition.top
     mouseX=e.pageX
     mouseY=e.pageY
+    click=false
 })
 
 window.addEventListener('mousedown',function(e){
@@ -761,6 +913,7 @@ window.addEventListener('mouseup',function(){
 })
 
 window.addEventListener('keydown', function(e){
+
     if(e.key==' '){
         space=true
     }
@@ -783,6 +936,10 @@ window.addEventListener('keydown', function(e){
 window.addEventListener('keyup', function(e){
     if(e.key==' '){
         space=false
+    }
+    if(e.key=='h'){
+        atomsFilled=0
+        fillHydrogen=true
     }
 })
 
@@ -909,11 +1066,52 @@ function drawGhostedAtoms(){
 
 }
 
-function deleteItemById(id) {
-    const index = moleculeArray.findIndex(item => item.id === id);
+function deleteItemById(id,array) {
+    const index = array.findIndex(item => item.id === id);
     if (index !== -1) {
-        moleculeArray.splice(index, 1);
+        array.splice(index, 1);
     } 
+    if(array==moleculeArray){
+        atomsTobeFilled--
+    }
+}
+
+function deleteWantedIdx(value,array){
+    let indexOfValue=array.indexOf(value)
+    if (indexOfValue !== -1) {
+        array.splice(indexOfValue, 1);
+    }
+}
+
+function addHydrogen(offset,idx,x,y,armlength,arm,type){
+    connected=1
+    connectionIdx=idx
+    newDetectedIDX=Math.floor(Math.random()*10-1)
+    if(arm==1){
+        newDetectedARM=1
+        armNumber=1
+        newDetectedMLCIDX=newDetectedMLCIDXCan
+        moleculeArray.push(new Molecule(x-offset+armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+    }else{
+        if(arm==2){
+            newDetectedARM=2
+            armNumber=2
+            newDetectedMLCIDX=newDetectedMLCIDXCan
+            moleculeArray.push(new Molecule(x-offset-armlength*1.5,y-offset, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+        }else{
+            if(arm==3){
+                newDetectedARM=3
+                armNumber=3
+                newDetectedMLCIDX=newDetectedMLCIDXCan
+                moleculeArray.push(new Molecule(x-offset,y-offset+armlength*1.5, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+            }else{
+                newDetectedARM=4
+                armNumber=4
+                newDetectedMLCIDX=newDetectedMLCIDXCan
+                moleculeArray.push(new Molecule(x-offset,y-offset-armlength*1.48, Math.floor(Math.random()*10-1) ,nextId++,2,7.4*3))
+            }
+        }
+    }
 }
 
 loop()
